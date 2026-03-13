@@ -3,12 +3,38 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
+
+	_ "github.com/lib/pq"
 )
+
+// ERROR: tests panic with nil pointer dereference on db.QueryRow
+// EXPLANATION: tests don't call main(), so db is never set — it's nil
+// FIX: TestMain runs before all tests and connects to the database
+// NOTE: this file must end in _test.go — Go only runs TestMain from test files
+func TestMain(m *testing.M) {
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = "postgres://shelf:shelf@db:5432/bookshelf?sslmode=disable"
+	}
+
+	var err error
+	db, err = sql.Open("postgres", databaseURL)
+	if err != nil {
+		fmt.Printf("could not connect to test database: %v\n", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	os.Exit(m.Run()) // runs all tests, exits with their result code
+}
 
 // sendRequest builds and sends an HTTP request through the router,
 // returns the recorder so you can check the response.

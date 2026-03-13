@@ -4,38 +4,20 @@
 package main
 
 import (
-	"testing"
 	"net/http"
-	"strings"
-	"net/http/httptest"
-	"encoding/json"
+	"testing"
 )
 
 func TestCreateBook(t *testing.T){
-	// build the request — assemble the envelope
-	body := strings.NewReader(`{"title": "Dune", "author": "Frank Herbert"}`)
-	req, err := http.NewRequest("POST", "/books", body)
-	if err != nil{
-		t.Fatalf("could not create request: %v", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	// send the request — handler writes its response into the recorder
-	responseRecorder := httptest.NewRecorder()
-	handler := setupRouter()
-	handler.ServeHTTP(responseRecorder, req)
+	// send POST /books with a new book
+	rr := sendRequest("POST", "/books", `{"title": "Dune", "author": "Frank Herbert"}`)
 
 	// check the result — read the notebook
-	if responseRecorder.Code != http.StatusCreated {
-		t.Errorf("got status %d, want %d", responseRecorder.Code, http.StatusCreated)
+	if rr.Code != http.StatusCreated {
+		t.Errorf("got status %d, want %d", rr.Code, http.StatusCreated)
 	}
 
-	var got Book
-	decoder := json.NewDecoder(responseRecorder.Body)
-	err = decoder.Decode(&got)
-	if err != nil {
-		t.Fatalf("could not decode response: %v", err)
-	}
+	got := decodeBook(t, rr)
 
 	if got.Title != "Dune" {
 		t.Errorf("got title %q, want %q", got.Title, "Dune")

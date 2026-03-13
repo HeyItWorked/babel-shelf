@@ -1,0 +1,8 @@
+# Docker
+pgdata/
+
+# Go
+go-bookshelf/bookshelf
+
+# OS
+.DS_Store

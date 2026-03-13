@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: shelf
+      POSTGRES_PASSWORD: shelf
+      POSTGRES_DB: bookshelf
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  go-bookshelf:
+    build: ./go-bookshelf
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://shelf:shelf@db:5432/bookshelf?sslmode=disable
+    depends_on:
+      - db
+
+volumes:
+  pgdata:

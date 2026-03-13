@@ -10,12 +10,7 @@ import (
 
 func TestCreateBook(t *testing.T){
 	// send POST /books with a new book
-	rr := sendRequest("POST", "/books", `{"title": "Dune", "author": "Frank Herbert"}`)
-
-	// check the result — read the notebook
-	if rr.Code != http.StatusCreated {
-		t.Errorf("got status %d, want %d", rr.Code, http.StatusCreated)
-	}
+	rr := sendAndExpect(t, "POST", "/books", `{"title": "Dune", "author": "Frank Herbert"}`, http.StatusCreated)
 
 	got := decodeBook(t, rr)
 
@@ -34,47 +29,63 @@ func TestCreateBook(t *testing.T){
 }
 
 func TestGetBooks(t *testing.T) {
-	// build the request — GET /books, no body needed
-	// send the request — handler writes list of books into the recorder
-	// check the result — decode into []Book (a slice, not a single book)
-	// verify the list is not empty and contains books we expect
+	// send GET /books
+	rr := sendAndExpect(t, "GET", "/books", "", http.StatusOK)
+
+	got := decodeBooks(t, rr)
+
+	if len(got) == 0 {
+		t.Errorf("expected at least one book, got empty list")
+	}
 }
 
 func TestGetBook(t *testing.T) {
-	// build the request — GET /books/1, no body needed
-	// send the request — handler writes one book into the recorder
-	// check the result — decode into a single Book
-	// verify the id, title, author, status match what we created
+	// send GET /books/1
+	rr := sendAndExpect(t, "GET", "/books/1", "", http.StatusOK)
+
+	got := decodeBook(t, rr)
+
+	if got.Id == 0 {
+		t.Errorf("expected an id, got 0")
+	}
+	if got.Title == "" {
+		t.Errorf("expected a title, got empty")
+	}
+	if got.Author == "" {
+		t.Errorf("expected an author, got empty")
+	}
+	if got.Status == "" {
+		t.Errorf("expected a status, got empty")
+	}
 }
 
 func TestGetBookNotFound(t *testing.T) {
-	// build the request — GET /books/99999, an id that doesn't exist
-	// send the request — handler should respond with not found
-	// check the result — expect 404 status code
+	// send GET /books/99999, an id that doesn't exist
+	sendAndExpect(t, "GET", "/books/99999", "", http.StatusNotFound)
 }
 
 func TestUpdateBook(t *testing.T) {
-	// build the request — PUT /books/1 with JSON body containing new status
-	// send the request — handler updates the book and writes it into the recorder
-	// check the result — decode into a Book
-	// verify the updated fields changed and the rest stayed the same
+	// send PUT /books/1 with JSON body containing new status
+	rr := sendAndExpect(t, "PUT", "/books/1", `{"status": "reading"}`, http.StatusOK)
+
+	got := decodeBook(t, rr)
+
+	if got.Status != StatusReading {
+		t.Errorf("got status %q, want %q", got.Status, StatusReading)
+	}
 }
 
 func TestDeleteBook(t *testing.T) {
-	// build the request — DELETE /books/1, no body needed
-	// send the request — handler deletes the book
-	// check the result — expect 200 or 204 (no content)
-	// optionally: GET /books/1 again and expect 404 to confirm it's gone
+	// send DELETE /books/1
+	sendAndExpect(t, "DELETE", "/books/1", "", http.StatusNoContent)
 }
 
 func TestCreateBookNoTitle(t *testing.T) {
-	// build the request — POST /books with JSON missing the title field
-	// send the request — handler should reject it
-	// check the result — expect 400 (bad request)
+	// send POST /books with JSON missing the title field
+	sendAndExpect(t, "POST", "/books", `{"author": "Frank Herbert"}`, http.StatusBadRequest)
 }
 
 func TestCreateBookInvalidStatus(t *testing.T) {
-	// build the request — POST /books with a status that isn't one of the 3 allowed
-	// send the request — handler should reject it
-	// check the result — expect 400 (bad request)
+	// send POST /books with a status that isn't one of the 3 allowed
+	sendAndExpect(t, "POST", "/books", `{"title": "Dune", "author": "Frank Herbert", "status": "burned"}`, http.StatusBadRequest)
 }

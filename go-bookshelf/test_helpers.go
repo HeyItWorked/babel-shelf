@@ -26,6 +26,16 @@ func sendRequest(method, url, body string) *httptest.ResponseRecorder {
 	return rr
 }
 
+// sendAndExpect sends a request and checks the status code for you.
+// Returns the recorder so you can still check the body.
+func sendAndExpect(t *testing.T, method, url, body string, expectedStatus int) *httptest.ResponseRecorder {
+	rr := sendRequest(method, url, body)
+	if rr.Code != expectedStatus {
+		t.Errorf("got status %d, want %d", rr.Code, expectedStatus)
+	}
+	return rr
+}
+
 // decodeBook reads the response body into a single Book struct.
 func decodeBook(t *testing.T, rr *httptest.ResponseRecorder) Book {
 	var got Book

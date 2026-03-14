@@ -1,9 +1,12 @@
 {
   "name": "TS Bookshelf",
   "image": "oven/bun:1",
+  "postCreateCommand": "bun install",
   "customizations": {
     "vscode": {
-      "extensions": ["oven.bun-vscode"]
+      "extensions": [
+        "oven.bun-vscode"
+      ]
     }
   }
 }

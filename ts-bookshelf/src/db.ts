@@ -16,6 +16,13 @@ import {Book} from './models'
 
 export let pool: Pool
 
+// setPool — lets index.ts and tests assign the pool from outside
+// why not just `export let pool` and reassign it from another file?
+// ES modules give you a copy of the reference, not direct access to the original.
+// reassigning from the importing file only updates your copy — db.ts's pool stays undefined.
+// setter function writes to the original variable inside db.ts.
+export function setPool(p: Pool) { pool = p }
+
 // ── insertBook ──
 // INSERT a new book → returns it with the generated id
 // pg auto-maps columns to object keys — no manual Scan like Go

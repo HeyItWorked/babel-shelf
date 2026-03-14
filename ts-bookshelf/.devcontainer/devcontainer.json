@@ -1,0 +1,9 @@
+{
+  "name": "TS Bookshelf",
+  "image": "oven/bun:1",
+  "customizations": {
+    "vscode": {
+      "extensions": ["oven.bun-vscode"]
+    }
+  }
+}

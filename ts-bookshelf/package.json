@@ -1,0 +1,16 @@
+{
+  "name": "ts-bookshelf",
+  "version": "1.0.0",
+  "dependencies": {
+    "hono": "^4",
+    "pg": "^8"
+  },
+  "devDependencies": {
+    "@types/pg": "^8",
+    "bun-types": "latest"
+  },
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "test": "bun test"
+  }
+}

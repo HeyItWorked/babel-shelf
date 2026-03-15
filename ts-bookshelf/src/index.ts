@@ -1,17 +1,20 @@
 // index.ts — Entry point. Connects to Postgres, starts the server.
-// Equivalent of main() in Go's main.go.
-//
-// 1. Read DATABASE_URL from environment
-// 2. Initialize the pg Pool (imported from db.ts)
-// 3. Test connection with pool.query("SELECT 1")
-// 4. Start server on port 8081 using Bun.serve
 
-// import { Pool } from "pg"
-// import { pool } from "./db"      — to assign the connection
-// import app from "./routes"        — the Hono app with all routes wired
+import { Pool } from "pg"
+import { pool, setPool } from "./db"
+import app from "./routes"
 
-// read DATABASE_URL
-// create new Pool({ connectionString: databaseUrl })
-// assign to db.ts's exported pool
-// test connection: await pool.query("SELECT 1")
-// start: export default { port: 8081, fetch: app.fetch }
+// create pool needs dbUrl -> only index can
+const databaseUrl = process.env.DATABASE_URL
+if (!databaseUrl){
+    console.error("DATABASE_URL is required")
+    process.exit(1)
+}
+
+// db.ts has the parking spot, index.ts buys the car and parks it.
+// db.ts just drives (pool.query). only index.ts and tests know the connection string.
+setPool(new Pool({ connectionString: databaseUrl }))
+await pool.query("SELECT 1")
+console.log("connected to database")
+
+export default { port: 8081, fetch: app.fetch }

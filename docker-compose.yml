@@ -28,5 +28,14 @@ services:
       db:
         condition: service_healthy
 
+  ts-bookshelf:
+    build: ./ts-bookshelf
+    ports:
+      - "8081:8081"
+    environment:
+      DATABASE_URL: postgres://shelf:shelf@db:5432/bookshelf?sslmode=disable
+    depends_on:
+      db:
+        condition: service_healthy
 volumes:
   pgdata:

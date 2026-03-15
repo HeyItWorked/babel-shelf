@@ -8,12 +8,13 @@ A CRUD bookshelf app built in every language. Same API, same database, different
 babel-shelf/
 ├── db/                  # Shared Postgres schema
 │   └── init.sql
-├── go-bookshelf/        # Go implementation
-├── docker-compose.yml   # Orchestrates app + Postgres
+├── go-bookshelf/        # Go (port 8080)
+├── ts-bookshelf/        # TypeScript/Bun (port 8081)
+├── docker-compose.yml   # Orchestrates apps + Postgres
 └── README.md
 ```
 
-Each language gets its own directory (`<lang>-bookshelf/`) with a Dockerfile and devcontainer config. They all share the same Postgres database and expose the same REST API on port 8080.
+Each language gets its own directory (`<lang>-bookshelf/`) with a Dockerfile and devcontainer config. They all share the same Postgres database and expose the same REST API.
 
 ## API
 
@@ -44,19 +45,26 @@ Status must be one of: `want to read`, `reading`, `finished`.
 docker compose up --build
 ```
 
-The API is available at `http://localhost:8080`.
+| Implementation | URL |
+|---------------|-----|
+| Go | `http://localhost:8080` |
+| TypeScript | `http://localhost:8081` |
 
 ## Testing
 
 Tests are integration tests that hit a real Postgres database (no mocks).
 
 ```bash
-# From inside the Go devcontainer or with Go installed:
+# Go — from inside devcontainer or with Go installed:
 cd go-bookshelf
 DATABASE_URL="postgres://shelf:shelf@db:5432/bookshelf?sslmode=disable" go test -v
+
+# TypeScript — from inside devcontainer or with Bun installed:
+cd ts-bookshelf
+DATABASE_URL="postgres://shelf:shelf@db:5432/bookshelf?sslmode=disable" bun test
 ```
 
 ## Implementations
 
 - [x] Go
-- [ ] TypeScript
+- [x] TypeScript (Bun + Hono + pg)

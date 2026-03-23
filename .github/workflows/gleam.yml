@@ -1,0 +1,32 @@
+name: Gleam
+
+on:
+  push:
+    paths: [gleam-bookshelf/**]
+  pull_request:
+    paths: [gleam-bookshelf/**]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27"
+          gleam-version: "1.14.0"
+          rebar3-version: "3"
+
+      - name: Download deps
+        working-directory: gleam-bookshelf
+        run: gleam deps download
+
+      - name: Build
+        working-directory: gleam-bookshelf
+        run: gleam build
+
+      - name: Format check
+        working-directory: gleam-bookshelf
+        run: gleam format --check src/

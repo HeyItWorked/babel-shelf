@@ -1,0 +1,44 @@
+name: Go
+
+on:
+  push:
+    paths: [go-bookshelf/**]
+  pull_request:
+    paths: [go-bookshelf/**]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: shelf
+          POSTGRES_PASSWORD: shelf
+          POSTGRES_DB: bookshelf
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U shelf -d bookshelf"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 10
+        volumes:
+          - ${{ github.workspace }}/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Build
+        working-directory: go-bookshelf
+        run: go build ./...
+
+      - name: Test
+        working-directory: go-bookshelf
+        env:
+          DATABASE_URL: postgres://shelf:shelf@localhost:5432/bookshelf?sslmode=disable
+        run: go test ./...

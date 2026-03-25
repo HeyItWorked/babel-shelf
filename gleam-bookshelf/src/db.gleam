@@ -10,7 +10,9 @@
 import gleam/dynamic/decode
 import gleam/result
 import gleam/string
-import models.{type Book, Book, status_from_string}
+import models.{
+  type Book, type BookStatus, Book, status_from_string, status_to_string,
+}
 import pog
 
 /// Application-level errors returned by DB functions.
@@ -36,4 +38,32 @@ pub fn book_decoder() -> decode.Decoder(Book) {
 /// Convert a pog.QueryError into an AppError.
 pub fn map_error(res: Result(a, pog.QueryError)) -> Result(a, AppError) {
   result.map_error(res, fn(e) { DatabaseError(string.inspect(e)) })
+}
+
+/// INSERT a new book, return it with the generated id.
+/// Same INSERT ... RETURNING pattern as Go and TS — one round trip.
+pub fn insert_book(
+  conn: pog.Connection,
+  title: String,
+  author: String,
+  status: BookStatus,
+) -> Result(Book, AppError) {
+  let sql =
+    "INSERT INTO books (title, author, status) VALUES ($1, $2, $3)
+     RETURNING id, title, author, status"
+
+  use returned <- result.try(
+    pog.query(sql)
+    |> pog.parameter(pog.text(title))
+    |> pog.parameter(pog.text(author))
+    |> pog.parameter(pog.text(status_to_string(status)))
+    |> pog.returning(book_decoder())
+    |> pog.execute(conn)
+    |> map_error,
+  )
+
+  case returned.rows {
+    [book] -> Ok(book)
+    _ -> Error(DatabaseError("insert returned no rows"))
+  }
 }
